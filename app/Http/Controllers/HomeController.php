@@ -35,29 +35,31 @@ class HomeController extends Controller
         ->whereIn('i.adv_company_user_id', array(58, 61))
         ->get();
 
+        /**input
+         * contact_name[...]
+         * contact_tel[...]
+         * contact_job[...]
+         *       
+         * output
+         * $temp[0 => {#236 ▼
+                +"name": "423423"
+                +"tel": "2424223"
+                +"job": "423424"
+                }]
+            */
         $info = []; 
         foreach ($rows as $row) {
-            $contact_name = explode(';', $row->contact_name);
-            $contact_tel = explode(';', $row->contact_tel);
-            $contact_job = explode(';', $row->contact_job);
+            $row->contact_name = explode(';', $row->contact_name);
+            $row->contact_tel = explode(';', $row->contact_tel);
+            $row->contact_job = explode(';', $row->contact_job);
 
-            $arr = (array)$row;
-            
-    
-            $arr['contact_name'] = $contact_name;
-            $arr['contact_tel'] = $contact_tel;
-            $arr['contact_job'] = $contact_job;
-
-            
-            for($i=0; $i < count($arr['contact_name']); $i++){
-                $temp[] = (object)array("name"=>$arr['contact_name'][$i], "tel"=>$arr['contact_tel'][$i], "job"=>$arr['contact_job'][$i]);
+            for($i=0; $i < count($row->contact_name); $i++){
+                $temp[] = (object)array("name"=>$row->contact_name[$i], "tel"=>$row->contact_tel[$i], "job"=>$row->contact_job[$i]);
             };
-            //
-
-            $arr['tel'] = $temp;
-            unset($temp, $arr['contact_job'], $arr['contact_name'], $arr['contact_tel']);
-
-            array_push($info, $arr);        
+            $row->contact_tel = $temp;
+            
+            unset($temp, $row->contact_name, $row->contact_job);
+            array_push($info, $row);                      
         }
 
         return response()->json([
