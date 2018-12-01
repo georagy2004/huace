@@ -14,7 +14,7 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        // $this->middleware('auth');
     }
 
     /**
@@ -65,5 +65,65 @@ class HomeController extends Controller
         return response()->json([
             'info' => $info
         ]);
+    }
+
+    public function show() {
+        $sql = "SELECT * FROM (
+            (SELECT 
+            id AS id, 
+            type AS type,
+            left_title AS title, 
+            left_cover AS cover, 
+            right_title AS right_title, 
+            right_cover AS right_cover,
+            sort AS sort,
+            UNIX_TIMESTAMP(create_time) AS time
+            FROM adv_company_home_double WHERE adv_company_user_id = 58) 
+            UNION ALL 
+            (SELECT 
+            id, 
+            type, 
+            title,
+            cover,
+            NULL,
+            NULL,
+            sort,
+            UNIX_TIMESTAMP(create_time)
+            FROM adv_company_home_single WHERE adv_company_user_id = 58) 
+            )AS res
+            ORDER BY sort ASC
+        //     ";
+        $sql1 = DB::table('adv_company_home_double AS d')->select('left_cover', 'd.id AS double_id', 'd.type AS double_type', 'd.sort AS double_sort')->where('d.adv_company_user_id', '=', 58);
+        // dd($sql1);
+        // dd($sql1);
+        $results = DB::table('adv_company_home_single AS s')->select('cover', 's.id', 's.type', 's.sort')->where('s.adv_company_user_id', '=', 58)->unionAll($sql1)->orderby('sort', 'asc')->get();
+        
+        // $rows = DB::select("select * from ".$sql2);
+        foreach($results as $res) {
+           $res->left_cover = urldecode($res->cover); 
+           dd($res);
+        }
+
+    foreach($res as $key){
+        $res[$key]['cover'] = urldecode($res[$key]['cover']);
+        if($res[$key]['right_cover'])
+            $res[$key]['right_cover'] = urldecode($res[$key]['right_cover']);
+            
+        $res[$key]['time'] = date("Y年m月d日", $res[$key]['time']);
+        $sort[] = $res[$key]['sort'];
+        $time[] = $res[$key]['time'];
+        }
+    // foreach($res as $key => $value){
+    //   $res[$key]['cover'] = urldecode($res[$key]['cover']);
+    //   if($res[$key]['right_cover'])
+    //     $res[$key]['right_cover'] = urldecode($res[$key]['right_cover']);
+        
+    //   $res[$key]['time'] = date("Y年m月d日", $res[$key]['time']);
+    //   $sort[] = $res[$key]['sort'];
+    //   $time[] = $res[$key]['time'];
+    // }
+    array_multisort($sort, SORT_DESC, $time, SORT_ASC, $res);
+    $res = json_encode($res);
+    print_r($res);
     }
 }
